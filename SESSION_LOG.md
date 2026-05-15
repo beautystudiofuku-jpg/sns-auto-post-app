@@ -1,5 +1,50 @@
 # SNS自動投稿システム - セッションログ
 
+## 2026/5/15 セッション（3回目）
+
+### 今回やったこと
+
+#### 1. サーバー側予約投稿スケジューラー拡張
+- Instagram/Facebook/Googleの予約投稿をサーバー側スケジューラーで処理するように拡張
+- `db/database.js`: postsテーブルに `image_url`, `post_platform` カラム追加
+- `services/scheduler.js`: executePost()にInstagram/Facebook/Google対応追加
+- `routes/posts.js`: 予約日時指定時はAPIの予約機能を使わずDBに保存しスケジューラーに委ねる
+- 全プラットフォームの予約投稿APIテスト成功（DB保存確認済み）
+
+#### 2. TikTok審査結果 → リジェクト → 再提出
+- 審査結果: **承認されていません（リジェクト）**
+- リジェクト理由:
+  - 利用規約にアプリ名が記載されていない
+  - プライバシーポリシーにアプリ名が記載されていない
+  - ウェブサイトURLがランディングページではない
+- 修正内容:
+  - `docs/terms.html`: アプリ名「sns-auto-post」を明記、連絡先メール追加
+  - `docs/privacy.html`: アプリ名「sns-auto-post」を明記、全プラットフォーム記載
+  - `docs/index.html`: ランディングページ新規作成
+- **再提出完了 → 審査中**
+
+#### 3. Meta Business Verification（ビジネス認証）開始
+- Meta Business Manager でビジネス認証を開始
+- ビジネスタイプ: 非公開会社
+- ビジネス名: KOKO K.K.（KOKO株式会社）
+- 別のビジネス名: Night Safari Group
+- ウェブサイト: https://night-safari-group.com/
+- 公的記録からKOKO K.K.を選択済み
+- **本人確認書類のアップロード待ち**（ボスに書類を依頼中）
+
+### 現在の待ち事項
+1. **TikTok審査** — 再提出済み、結果待ち（5〜10営業日）
+2. **Meta ビジネス認証** — 本人確認書類待ち → 完了後にApp Review申請へ進む
+3. **Google/TikTokトークン再連携** — 期限切れ
+
+### 次回やること
+1. ボスから本人確認書類をもらってMeta ビジネス認証を完了させる
+2. ビジネス認証完了後、Meta App Reviewを申請する
+3. TikTok審査結果を確認する
+4. Google/TikTokトークン再連携
+
+---
+
 ## 2026/5/15 セッション（2回目）
 
 ### 今回やったこと
