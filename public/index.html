@@ -111,6 +111,11 @@
             <input type="url" id="google-cta-url" placeholder="https://example.com">
           </div>
 
+          <div class="form-group">
+            <label>予約日時（空欄で即時投稿）</label>
+            <input type="datetime-local" id="google-schedule">
+          </div>
+
           <div style="display:flex;gap:8px">
             <button class="btn btn-primary" id="btn-google-post" onclick="submitGooglePost()">投稿する</button>
           </div>
@@ -193,6 +198,7 @@
             <thead>
               <tr>
                 <th>店舗</th>
+                <th>プラットフォーム</th>
                 <th>キャプション</th>
                 <th>予約日時</th>
                 <th>ステータス</th>

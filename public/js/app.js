@@ -390,6 +390,7 @@ async function loadManagePosts() {
   tbody.innerHTML = allPosts.map(p => `
     <tr>
       <td>${esc(p.store_name)}</td>
+      <td>${p.post_platform ? `<span class="platform-badge platform-${platformClass(p.post_platform)}">${platformLabel(p.post_platform)}</span>` : `<span class="platform-badge platform-${p.platform}">${platformLabel(p.platform)}</span>`}</td>
       <td>${esc((p.title || '').substring(0, 40))}${(p.title || '').length > 40 ? '...' : ''}</td>
       <td>${p.scheduled_at ? formatDate(p.scheduled_at) : '---'}</td>
       <td><span class="badge badge-${p.status}">${statusLabel(p.status)}</span></td>
@@ -451,7 +452,7 @@ async function loadHistory() {
   tbody.innerHTML = historyPosts.map(p => `
     <tr>
       <td>${esc(p.store_name)}</td>
-      <td><span class="platform-badge platform-${p.platform}">${p.platform}</span></td>
+      <td>${p.post_platform ? `<span class="platform-badge platform-${platformClass(p.post_platform)}">${platformLabel(p.post_platform)}</span>` : `<span class="platform-badge platform-${p.platform}">${platformLabel(p.platform)}</span>`}</td>
       <td>${esc((p.title || '').substring(0, 30))}${(p.title || '').length > 30 ? '...' : ''}</td>
       <td><span class="badge badge-${p.status}">${statusLabel(p.status)}</span></td>
       <td>${p.published_at ? formatDate(p.published_at) : formatDate(p.updated_at)}</td>
@@ -477,6 +478,28 @@ function formatDate(dateStr) {
 function isTokenExpired(expiresAt) {
   if (!expiresAt) return false;
   return new Date(expiresAt) < new Date();
+}
+
+function platformLabel(platform) {
+  const labels = {
+    tiktok: 'TikTok',
+    instagram: 'Instagram',
+    instagram_story: 'IG Story',
+    facebook: 'Facebook',
+    google_business: 'Google',
+  };
+  return labels[platform] || platform || '---';
+}
+
+function platformClass(platform) {
+  const classes = {
+    tiktok: 'tiktok',
+    instagram: 'instagram',
+    instagram_story: 'instagram',
+    facebook: 'facebook',
+    google_business: 'google',
+  };
+  return classes[platform] || platform || '';
 }
 
 function statusLabel(status) {
@@ -620,17 +643,23 @@ async function submitGooglePost() {
       call_to_action_url: document.getElementById('google-cta-url').value || null,
     };
 
-    await api('/api/posts/google', {
+    const googleScheduleEl = document.getElementById('google-schedule');
+    if (googleScheduleEl && googleScheduleEl.value) {
+      body.scheduled_publish_time = googleScheduleEl.value;
+    }
+
+    const result = await api('/api/posts/google', {
       method: 'POST',
       body: JSON.stringify(body),
     });
 
-    showToast('Googleビジネスプロフィールに投稿しました', 'success');
+    showToast(result.message || 'Googleビジネスプロフィールに投稿しました', 'success');
     document.getElementById('google-summary').value = '';
     document.getElementById('google-summary-count').textContent = '0';
     document.getElementById('google-cta-type').value = '';
     document.getElementById('google-cta-url').value = '';
     document.getElementById('google-cta-url-group').style.display = 'none';
+    if (googleScheduleEl) googleScheduleEl.value = '';
 
   } catch (err) {
     showToast('投稿失敗: ' + err.message, 'error');
