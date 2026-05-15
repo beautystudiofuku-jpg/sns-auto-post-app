@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SNS自動投稿システム</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="header">
+    <h1>SNS 自動投稿システム</h1>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="stores">店舗管理</button>
+    <button class="tab" data-tab="new-post">新規投稿</button>
+    <button class="tab" data-tab="manage">投稿管理</button>
+    <button class="tab" data-tab="history">投稿履歴</button>
+  </nav>
+
+  <main class="content">
+    <!-- 店舗管理 -->
+    <div id="stores" class="tab-panel active">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">店舗一覧</h2>
+          <button class="btn btn-primary" onclick="openAddStoreModal()">+ 店舗を追加</button>
+        </div>
+        <div id="store-list"></div>
+      </div>
+    </div>
+
+    <!-- 新規投稿 -->
+    <div id="new-post" class="tab-panel">
+      <div class="card">
+        <h2 class="card-title" style="margin-bottom:16px">新規投稿を作成</h2>
+
+        <div class="form-group">
+          <label>店舗 / アカウント</label>
+          <select id="post-account"></select>
+        </div>
+
+        <!-- TikTok用フィールド -->
+        <div id="tiktok-fields">
+          <div class="form-group">
+            <label>動画ファイル</label>
+            <div class="drop-zone" id="drop-zone">
+              <p>ここにドラッグ＆ドロップ</p>
+              <p style="font-size:12px">または クリックしてファイルを選択（MP4, MOV, WebM / 128MBまで）</p>
+              <input type="file" id="video-input" accept=".mp4,.mov,.webm" style="display:none">
+            </div>
+            <div id="video-preview-area" class="video-preview" style="display:none">
+              <video id="video-preview" controls></video>
+              <button class="btn btn-outline btn-sm" onclick="clearVideo()" style="margin-top:8px">動画を変更</button>
+            </div>
+            <div id="upload-progress" style="display:none">
+              <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+              <span id="progress-text" style="font-size:12px"></span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>キャプション</label>
+            <textarea id="post-title" maxlength="2200" placeholder="キャプションを入力..."></textarea>
+            <div class="char-count"><span id="title-count">0</span> / 2200</div>
+          </div>
+
+          <div class="form-group">
+            <label>公開設定</label>
+            <select id="post-privacy">
+              <option value="SELF_ONLY">自分のみ（SELF_ONLY）</option>
+              <option value="MUTUAL_FOLLOW_FRIENDS">相互フォロー</option>
+              <option value="FOLLOWER_OF_CREATOR">フォロワーのみ</option>
+              <option value="PUBLIC_TO_EVERYONE">全体公開</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>予約日時（空欄で下書き保存）</label>
+            <input type="datetime-local" id="post-schedule">
+          </div>
+
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary" id="btn-save-draft" onclick="saveDraft()">下書き保存</button>
+          </div>
+        </div>
+
+        <!-- Google Business Profile用フィールド -->
+        <div id="google-fields" style="display:none">
+          <div class="form-group">
+            <label>投稿内容</label>
+            <textarea id="google-summary" maxlength="1500" rows="5" placeholder="Googleビジネスプロフィールに投稿する内容を入力..."></textarea>
+            <div class="char-count"><span id="google-summary-count">0</span> / 1500</div>
+          </div>
+
+          <div class="form-group">
+            <label>ボタン（任意）</label>
+            <select id="google-cta-type">
+              <option value="">なし</option>
+              <option value="LEARN_MORE">詳細</option>
+              <option value="BOOK">予約</option>
+              <option value="ORDER">注文</option>
+              <option value="SHOP">ショップ</option>
+              <option value="SIGN_UP">登録</option>
+              <option value="CALL">電話</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="google-cta-url-group" style="display:none">
+            <label>ボタンのリンク先URL</label>
+            <input type="url" id="google-cta-url" placeholder="https://example.com">
+          </div>
+
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary" id="btn-google-post" onclick="submitGooglePost()">投稿する</button>
+          </div>
+        </div>
+
+        <!-- Instagram用フィールド -->
+        <div id="instagram-fields" style="display:none">
+          <div class="form-group">
+            <label>投稿タイプ</label>
+            <select id="instagram-post-type" onchange="toggleInstagramSchedule()">
+              <option value="feed">通常投稿（フィード）</option>
+              <option value="story">ストーリー（24時間で消える）</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>画像URL（公開アクセス可能なURL）</label>
+            <input type="url" id="instagram-image-url" placeholder="https://example.com/image.jpg">
+            <p style="font-size:12px;color:var(--text-light);margin-top:4px">JPG / PNG 形式、公開URLを指定してください</p>
+          </div>
+
+          <div class="form-group" id="instagram-caption-group">
+            <label>キャプション</label>
+            <textarea id="instagram-caption" maxlength="2200" rows="5" placeholder="キャプションを入力...（#ハッシュタグも使えます）"></textarea>
+            <div class="char-count"><span id="instagram-caption-count">0</span> / 2200</div>
+          </div>
+
+          <div class="form-group" id="instagram-schedule-group">
+            <label>予約日時（空欄で即時投稿）</label>
+            <input type="datetime-local" id="instagram-schedule">
+            <p style="font-size:12px;color:var(--text-light);margin-top:4px">10分後〜75日先まで指定可能</p>
+          </div>
+
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary" id="btn-instagram-post" onclick="submitInstagramPost()">投稿する</button>
+          </div>
+        </div>
+
+        <!-- Facebook用フィールド -->
+        <div id="facebook-fields" style="display:none">
+          <div class="form-group">
+            <label>投稿テキスト</label>
+            <textarea id="facebook-message" maxlength="5000" rows="5" placeholder="Facebookページに投稿する内容を入力..."></textarea>
+            <div class="char-count"><span id="facebook-message-count">0</span> / 5000</div>
+          </div>
+
+          <div class="form-group">
+            <label>画像URL（任意）</label>
+            <input type="url" id="facebook-image-url" placeholder="https://example.com/image.jpg（空欄でテキストのみ投稿）">
+          </div>
+
+          <div class="form-group">
+            <label>予約日時（空欄で即時投稿）</label>
+            <input type="datetime-local" id="facebook-schedule">
+            <p style="font-size:12px;color:var(--text-light);margin-top:4px">10分後〜75日先まで指定可能</p>
+          </div>
+
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary" id="btn-facebook-post" onclick="submitFacebookPost()">投稿する</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 投稿管理 -->
+    <div id="manage" class="tab-panel">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">投稿管理</h2>
+          <select id="manage-filter" onchange="loadManagePosts()">
+            <option value="">すべて</option>
+            <option value="draft">下書き</option>
+            <option value="scheduled">予約済み</option>
+            <option value="approved">承認済み</option>
+            <option value="processing">処理中</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>店舗</th>
+                <th>キャプション</th>
+                <th>予約日時</th>
+                <th>ステータス</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="manage-table"></tbody>
+          </table>
+        </div>
+        <div id="manage-empty" class="empty-state" style="display:none">
+          <p>投稿はありません</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 投稿履歴 -->
+    <div id="history" class="tab-panel">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">投稿履歴</h2>
+          <select id="history-filter" onchange="loadHistory()">
+            <option value="">すべて</option>
+            <option value="published">投稿完了</option>
+            <option value="failed">失敗</option>
+            <option value="cancelled">キャンセル</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>店舗</th>
+                <th>プラットフォーム</th>
+                <th>キャプション</th>
+                <th>ステータス</th>
+                <th>投稿日時</th>
+                <th>エラー</th>
+              </tr>
+            </thead>
+            <tbody id="history-table"></tbody>
+          </table>
+        </div>
+        <div id="history-empty" class="empty-state" style="display:none">
+          <p>履歴はありません</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 店舗追加モーダル -->
+  <div class="modal-overlay" id="store-modal">
+    <div class="modal">
+      <h3 id="store-modal-title">店舗を追加</h3>
+      <div class="form-group">
+        <label>店舗名</label>
+        <input type="text" id="store-name" placeholder="例: スナック華音 中洲店">
+      </div>
+      <div class="form-group">
+        <label>説明（任意）</label>
+        <textarea id="store-desc" placeholder="メモなど"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal('store-modal')">キャンセル</button>
+        <button class="btn btn-primary" onclick="saveStore()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- トースト通知 -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
