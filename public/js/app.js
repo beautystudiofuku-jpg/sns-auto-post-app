@@ -516,6 +516,108 @@ function statusLabel(status) {
   return labels[status] || status;
 }
 
+// ===== 共通: 画像アップロード処理 =====
+// ファイル選択時にサーバーへアップして公開URLを返す
+async function uploadImageFile(file, statusEl) {
+  const maxSize = 8 * 1024 * 1024;
+  if (file.size > maxSize) {
+    throw new Error('画像サイズは8MB以下にしてください');
+  }
+  const allowed = ['image/jpeg', 'image/png'];
+  if (!allowed.includes(file.type)) {
+    throw new Error('対応形式: JPG, PNG');
+  }
+
+  if (statusEl) statusEl.textContent = 'アップロード中...';
+
+  const formData = new FormData();
+  formData.append('image', file);
+
+  const res = await fetch('/api/posts/upload-image', { method: 'POST', body: formData });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'アップロードに失敗しました');
+
+  if (statusEl) statusEl.textContent = `アップロード完了（${(file.size / 1024).toFixed(0)} KB）`;
+  return data.url;
+}
+
+// ===== Instagram用 画像選択処理 =====
+let instagramUploadedImageUrl = null;
+
+function setupImageDropZone(zoneId, inputId, previewAreaId, previewImgId, statusId, urlSetter) {
+  const zone = document.getElementById(zoneId);
+  const input = document.getElementById(inputId);
+  if (!zone || !input) return;
+
+  zone.addEventListener('click', () => input.click());
+  zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) handleImageFile(e.dataTransfer.files[0]);
+  });
+  input.addEventListener('change', (e) => {
+    if (e.target.files.length) handleImageFile(e.target.files[0]);
+  });
+
+  async function handleImageFile(file) {
+    const previewArea = document.getElementById(previewAreaId);
+    const previewImg = document.getElementById(previewImgId);
+    const statusEl = document.getElementById(statusId);
+
+    // プレビュー表示
+    previewImg.src = URL.createObjectURL(file);
+    zone.style.display = 'none';
+    previewArea.style.display = 'block';
+
+    try {
+      const url = await uploadImageFile(file, statusEl);
+      urlSetter(url);
+    } catch (err) {
+      showToast(err.message, 'error');
+      statusEl.textContent = '失敗: ' + err.message;
+      urlSetter(null);
+    }
+  }
+}
+
+// Instagram/Facebookの画像ドロップゾーンをセットアップ
+setupImageDropZone(
+  'instagram-drop-zone',
+  'instagram-image-input',
+  'instagram-image-preview-area',
+  'instagram-image-preview',
+  'instagram-image-status',
+  (url) => { instagramUploadedImageUrl = url; }
+);
+
+let facebookUploadedImageUrl = null;
+setupImageDropZone(
+  'facebook-drop-zone',
+  'facebook-image-input',
+  'facebook-image-preview-area',
+  'facebook-image-preview',
+  'facebook-image-status',
+  (url) => { facebookUploadedImageUrl = url; }
+);
+
+function clearInstagramImage() {
+  instagramUploadedImageUrl = null;
+  document.getElementById('instagram-image-preview-area').style.display = 'none';
+  document.getElementById('instagram-drop-zone').style.display = 'block';
+  document.getElementById('instagram-image-input').value = '';
+  document.getElementById('instagram-image-status').textContent = '';
+}
+
+function clearFacebookImage() {
+  facebookUploadedImageUrl = null;
+  document.getElementById('facebook-image-preview-area').style.display = 'none';
+  document.getElementById('facebook-drop-zone').style.display = 'block';
+  document.getElementById('facebook-image-input').value = '';
+  document.getElementById('facebook-image-status').textContent = '';
+}
+
 // ===== Instagram投稿 =====
 document.getElementById('instagram-caption')?.addEventListener('input', function() {
   document.getElementById('instagram-caption-count').textContent = this.value.length;
@@ -525,8 +627,9 @@ async function submitInstagramPost() {
   const accountId = document.getElementById('post-account').value;
   if (!accountId) return showToast('アカウントを選択してください', 'error');
 
-  const imageUrl = document.getElementById('instagram-image-url').value.trim();
-  if (!imageUrl) return showToast('画像URLを入力してください', 'error');
+  // 画像URL: アップロード済みファイル優先、なければURL入力欄
+  const imageUrl = instagramUploadedImageUrl || document.getElementById('instagram-image-url').value.trim();
+  if (!imageUrl) return showToast('画像を選択するかURLを入力してください', 'error');
 
   const postType = document.getElementById('instagram-post-type').value;
 
@@ -558,6 +661,7 @@ async function submitInstagramPost() {
     document.getElementById('instagram-caption').value = '';
     document.getElementById('instagram-caption-count').textContent = '0';
     if (scheduleEl) scheduleEl.value = '';
+    clearInstagramImage();
 
   } catch (err) {
     showToast('投稿失敗: ' + err.message, 'error');
@@ -584,10 +688,13 @@ async function submitFacebookPost() {
   btn.textContent = '投稿中...';
 
   try {
+    // 画像URL: アップロード済みファイル優先、なければURL入力欄
+    const fbImageUrl = facebookUploadedImageUrl || document.getElementById('facebook-image-url').value.trim() || null;
+
     const body = {
       sns_account_id: parseInt(accountId),
       message,
-      image_url: document.getElementById('facebook-image-url').value.trim() || null,
+      image_url: fbImageUrl,
     };
 
     const scheduleEl = document.getElementById('facebook-schedule');
@@ -605,6 +712,7 @@ async function submitFacebookPost() {
     document.getElementById('facebook-message-count').textContent = '0';
     document.getElementById('facebook-image-url').value = '';
     if (scheduleEl) scheduleEl.value = '';
+    clearFacebookImage();
 
   } catch (err) {
     showToast('投稿失敗: ' + err.message, 'error');

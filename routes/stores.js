@@ -8,7 +8,7 @@ router.get('/', (req, res) => {
     SELECT s.*,
       (SELECT COUNT(*) FROM sns_accounts sa WHERE sa.store_id = s.id AND sa.is_active = 1) as account_count
     FROM stores s
-    ORDER BY s.created_at DESC
+    ORDER BY s.id ASC
   `).all();
   res.json(stores);
 });

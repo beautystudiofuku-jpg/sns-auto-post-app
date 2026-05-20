@@ -12,6 +12,7 @@ const { postImage, postToFacebookPage, postImageToFacebookPage } = require('../s
 const config = require('../config');
 const { canPost, recordPost } = require('../services/rate-limiter');
 const { logger } = require('../middleware/error-handler');
+const r2 = require('../services/storage/r2');
 
 // 動画アップロード設定
 const storage = multer.diskStorage({
@@ -40,6 +41,21 @@ const upload = multer({
   },
 });
 
+// 画像アップロード設定（Instagram/Facebook用）
+const imageUpload = multer({
+  storage,
+  limits: { fileSize: 8 * 1024 * 1024 }, // Instagram推奨: 8MB
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.jpg', '.jpeg', '.png'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('対応形式: JPG, PNG'));
+    }
+  },
+});
+
 // 動画アップロード
 router.post('/upload', upload.single('video'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: '動画ファイルが必要です' });
@@ -49,6 +65,40 @@ router.post('/upload', upload.single('video'), (req, res) => {
     path: req.file.path,
     size: req.file.size,
   });
+});
+
+// 画像アップロード（Instagram/Facebook用）
+// R2 が設定されていれば R2 に保存、未設定ならローカル保存にフォールバック
+router.post('/upload-image', imageUpload.single('image'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: '画像ファイルが必要です' });
+
+  try {
+    if (config.useR2) {
+      // R2 にアップロード（外部からアクセス可能）
+      const result = await r2.uploadFromLocalPath(req.file.path, req.file.mimetype, 'images');
+      logger.info(`R2 画像アップロード成功: ${result.key}`);
+      return res.json({
+        filename: req.file.filename,
+        size: req.file.size,
+        url: result.url,
+        storage: 'r2',
+      });
+    }
+
+    // R2 未設定: ローカルURLを返す（外部からは見えない）
+    const baseUrl = process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const publicUrl = `${baseUrl}/uploads/${req.file.filename}`;
+    res.json({
+      filename: req.file.filename,
+      path: req.file.path,
+      size: req.file.size,
+      url: publicUrl,
+      storage: 'local',
+    });
+  } catch (err) {
+    logger.error(`画像アップロード失敗: ${err.message}`);
+    res.status(500).json({ error: '画像アップロードに失敗しました: ' + err.message });
+  }
 });
 
 // 投稿作成（下書き保存）

@@ -132,9 +132,24 @@
           </div>
 
           <div class="form-group">
-            <label>画像URL（公開アクセス可能なURL）</label>
-            <input type="url" id="instagram-image-url" placeholder="https://example.com/image.jpg">
-            <p style="font-size:12px;color:var(--text-light);margin-top:4px">JPG / PNG 形式、公開URLを指定してください</p>
+            <label>画像</label>
+            <div class="drop-zone" id="instagram-drop-zone">
+              <p>ここに画像をドラッグ＆ドロップ</p>
+              <p style="font-size:12px">または クリックしてファイルを選択（JPG / PNG / 8MBまで）</p>
+              <input type="file" id="instagram-image-input" accept=".jpg,.jpeg,.png" style="display:none">
+            </div>
+            <div id="instagram-image-preview-area" style="display:none;margin-top:8px">
+              <img id="instagram-image-preview" style="max-width:100%;max-height:240px;border-radius:8px">
+              <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+                <button class="btn btn-outline btn-sm" onclick="clearInstagramImage()">画像を変更</button>
+                <span id="instagram-image-status" style="font-size:12px;color:var(--text-light)"></span>
+              </div>
+            </div>
+            <details style="margin-top:8px">
+              <summary style="font-size:12px;color:var(--text-light);cursor:pointer">URLで指定する場合はこちら</summary>
+              <input type="url" id="instagram-image-url" placeholder="https://example.com/image.jpg" style="margin-top:4px">
+              <p style="font-size:12px;color:var(--text-light);margin-top:4px">公開アクセス可能なJPG / PNGのURL</p>
+            </details>
           </div>
 
           <div class="form-group" id="instagram-caption-group">
@@ -163,8 +178,24 @@
           </div>
 
           <div class="form-group">
-            <label>画像URL（任意）</label>
-            <input type="url" id="facebook-image-url" placeholder="https://example.com/image.jpg（空欄でテキストのみ投稿）">
+            <label>画像（任意）</label>
+            <div class="drop-zone" id="facebook-drop-zone">
+              <p>ここに画像をドラッグ＆ドロップ</p>
+              <p style="font-size:12px">または クリックしてファイルを選択（JPG / PNG / 8MBまで）</p>
+              <input type="file" id="facebook-image-input" accept=".jpg,.jpeg,.png" style="display:none">
+            </div>
+            <div id="facebook-image-preview-area" style="display:none;margin-top:8px">
+              <img id="facebook-image-preview" style="max-width:100%;max-height:240px;border-radius:8px">
+              <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+                <button class="btn btn-outline btn-sm" onclick="clearFacebookImage()">画像を変更</button>
+                <span id="facebook-image-status" style="font-size:12px;color:var(--text-light)"></span>
+              </div>
+            </div>
+            <details style="margin-top:8px">
+              <summary style="font-size:12px;color:var(--text-light);cursor:pointer">URLで指定する場合はこちら</summary>
+              <input type="url" id="facebook-image-url" placeholder="https://example.com/image.jpg" style="margin-top:4px">
+              <p style="font-size:12px;color:var(--text-light);margin-top:4px">画像を使わない場合は空欄でOK</p>
+            </details>
           </div>
 
           <div class="form-group">

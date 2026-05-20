@@ -27,6 +27,17 @@ const config = {
   db: {
     path: process.env.DB_PATH || './db/sns_auto_post.db',
   },
+  r2: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+    endpoint: process.env.R2_ENDPOINT,
+    bucket: process.env.R2_BUCKET || 'sns-auto-post-media',
+    publicUrl: process.env.R2_PUBLIC_URL || 'https://pub-83018942c3124bfcb182011ba3ef7a72.r2.dev',
+  },
+  // R2が設定されている場合のみ有効化、未設定ならローカルファイル保存にフォールバック
+  get useR2() {
+    return !!(this.r2.accessKeyId && this.r2.secretAccessKey && this.r2.endpoint);
+  },
 };
 
 module.exports = config;

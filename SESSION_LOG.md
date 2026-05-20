@@ -1,5 +1,100 @@
 # SNS自動投稿システム - セッションログ
 
+## 2026/5/20 セッション
+
+### 今回やったこと
+
+#### 1. 状況確認
+- TikTok審査: まだ In Review（5/15再提出後 → 5日経過・継続審査中）
+- Meta ビジネス認証: **すでに認証済み（5/16）** ← 大進展
+- Google/TikTokトークン: 表示は緑（生きていた）
+
+#### 2. 画像/動画アップロード機能を追加
+- Instagram/Facebookの「画像URL指定」を「ファイル直接アップロード」に変更
+- `routes/posts.js` に `POST /api/posts/upload-image` 追加
+- `public/index.html` にドラッグ&ドロップUI追加
+- `public/js/app.js` でアップロード→プレビュー→URL自動設定
+
+#### 3. Cloudflare R2 連携完了
+- アカウント: Night.safari.group@gmail.com（既存利用）
+- バケット作成: `sns-auto-post-media`
+- パブリック開発URL: `https://pub-83018942c3124bfcb182011ba3ef7a72.r2.dev`
+- Account APIトークン作成（Object Read & Write）
+- `services/storage/r2.js` 新規実装（S3互換）
+- `config/index.js` に r2 セクション追加・`useR2` フラグ
+- `.env.example` を新規作成
+- ローカル保存とR2の自動切り替え（R2_キー設定有無で判定）
+
+#### 4. Instagram実投稿 成功確認
+- PCの画像 → R2にアップ → r2.devの公開URL → Instagram投稿API → **投稿成功確認**
+- kanon.nakasu のInstagramフィードに実際に表示された
+
+### 課金状況（後で会社カードに切り替え予定）
+- Cloudflare R2: 個人カード登録（無料枠10GB内で運用）
+- Meta: 個人カード登録済み（認証完了済み）
+
+### 次回やること
+1. Supabase Postgres DB作成（クラウド対応のためSQLiteから移行）
+2. DB接続コードを better-sqlite3 → pg に変更
+3. Render アカウント連携・デプロイ
+4. 各SNS Developer Console で本番URL（onrender.com）をリダイレクトURIに追加
+5. 携帯から本番URLで動作確認
+
+---
+
+## 2026/5/16 セッション
+
+### 今回やったこと
+
+#### 1. 3店舗のDB登録
+- 以下の3店舗を `stores` テーブルに追加（Node.js経由で直接INSERT、curlはWindows端末の文字化け問題あり）
+  - ID=6: なべやかん
+  - ID=7: あきさんのご飯
+  - ID=8: Beauty studio fuku（元「ビューティースタジオフク」→英名に変更）
+
+#### 2. 店舗一覧の並び順変更
+- `routes/stores.js`: `ORDER BY s.created_at DESC` → `ORDER BY s.id ASC` に変更
+- 華音（ID=1）が一番上に表示されるようになった
+
+#### 3. Instagram ストーリーのメンション調査
+- Instagram Graph APIではストーリーにメンション・ステッカー・テキスト追加は**不可**
+- API経由では画像/動画のみ。メンション等はInstagramアプリ側の機能
+
+### DB内の現在のデータ
+| ID | 店舗名 | SNSアカウント |
+|----|--------|--------------|
+| 1 | 華音 | TikTok / Instagram / Google（3件） |
+| 2 | Nancy's Diner | なし |
+| 6 | なべやかん | なし |
+| 7 | あきさんのご飯 | なし |
+| 8 | Beauty studio fuku | なし |
+
+### 他店舗のSNS連携に必要な情報（次回案内用）
+各店舗の担当者に事前確認してもらう内容:
+
+| SNS | 必要な準備 |
+|-----|----------|
+| TikTok | クリエイターアカウントであること |
+| Instagram | ビジネス or クリエイターアカウント、Facebookページと紐付け済み |
+| Facebook | 投稿先ページの管理者権限 |
+| Google | ビジネスプロフィール作成済み＆オーナー確認済み |
+
+連携手順: 店舗管理画面で「連携」ボタン → 各SNSにログイン＆許可（OAuth）。パスワード共有不要。
+
+### 現在の待ち事項
+1. **TikTok審査** — 再提出済み、結果待ち
+2. **Meta ビジネス認証** — 本人確認書類待ち → 完了後にApp Review申請へ
+3. **Google/TikTokトークン再連携** — 期限切れ
+
+### 次回やること
+1. 各店舗の担当者にSNS連携の事前準備を案内する（上記チェックリスト）
+2. ボスから本人確認書類をもらってMeta ビジネス認証を完了させる
+3. ビジネス認証完了後、Meta App Reviewを申請する
+4. TikTok審査結果を確認する
+5. Google/TikTokトークン再連携
+
+---
+
 ## 2026/5/15 セッション（3回目）
 
 ### 今回やったこと
