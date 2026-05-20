@@ -1,5 +1,73 @@
 # SNS自動投稿システム - セッションログ
 
+## 2026/5/21 セッション 🎉 本番デプロイ達成日
+
+### 今回やったこと
+
+#### 1. クラウド構成決定
+- **DB**: SQLite継続使用（Render Persistent Disk上で永続化）— Postgres移行はコード変更量大きく見送り
+- **画像/動画ストレージ**: Cloudflare R2（前日構築済み）
+- **ホスティング**: Render (Starter $7/月 + Disk 1GB $0.25/月 = 約$7.25/月)
+- **Supabase Postgres**: 作成済みだが今は未使用（将来のオプションとして保持）
+
+#### 2. Supabase プロジェクト作成（将来用）
+- アカウント: ナイトサファリ系（既存）
+- プロジェクト名: `sns-auto-post`
+- リージョン: Northeast Asia (Tokyo)
+- 接続URL（Session pooler）を `.env` に DATABASE_URL として保存
+- pg 接続テスト成功（PostgreSQL 17.6）
+- **今は使わない**。Render Persistent Disk + SQLite で運用
+
+#### 3. Render アカウント連携
+- アカウント: beautystudiofuku-jpg（GitHubと統一）
+- GitHub Appとして `sns-auto-post-app` リポジトリのみ許可
+- 設定:
+  - Region: Singapore
+  - Branch: main
+  - Build: npm install / Start: node server.js
+  - Instance: Starter ($7/月)
+  - Persistent Disk: /var/data, 1GB ($0.25/月)
+  - Health Check: /api/health
+  - Auto-Deploy: On Commit
+
+#### 4. 環境変数の本番化
+- ローカル `.env` をRenderにインポート
+- 本番用に書き換えた3つ:
+  - `PORT=10000`（Render規定）
+  - `GOOGLE_REDIRECT_URI=https://sns-auto-post-app.onrender.com/auth/google/callback`
+  - `DB_PATH=/var/data/sns_auto_post.db`
+- 追加した1つ:
+  - `PUBLIC_BASE_URL=https://sns-auto-post-app.onrender.com`
+
+#### 5. 🚀 本番デプロイ成功
+- **公開URL**: https://sns-auto-post-app.onrender.com
+- 「sns-auto-post-app is live!」表示確認
+- ブラウザで本番画面アクセス成功
+- **携帯からアクセス成功** ← 大目標達成！
+- 本番DBは空っぽ（次回店舗追加・再連携が必要）
+
+### 課金状況（後で会社カードに切り替え予定）
+- Cloudflare R2: 個人カード（無料枠内）
+- Meta: 個人カード（認証完了済み）
+- **Render: 個人カード** ← NEW、月$7.25
+
+### 将来のTODO
+- GitHubアカウント統一（beautystudiofuku-jpg → nightsafarigroup-ai）はTikTok審査完了後に
+- DBをPostgresに移行は必要性を感じてから
+
+### 次回やること
+1. 本番で店舗（華音など）を新規追加
+2. TikTok / Instagram / Facebook / Google を本番側で再連携（OAuth）
+3. 各SNS Developer Console で本番URL（onrender.com）をRedirect URIに追加
+   - Meta: `https://sns-auto-post-app.onrender.com/auth/meta/callback`
+   - Google: 既に環境変数で設定済み
+   - TikTok: GitHub Pages中継方式のままで可（callback.html）
+4. 本番からSNS投稿テスト
+5. 他店舗担当者にも本番URL共有して、各自で投稿してもらえる体制構築
+6. **TikTok審査結果確認**（5/15再提出から1週間）
+
+---
+
 ## 2026/5/20 セッション
 
 ### 今回やったこと
