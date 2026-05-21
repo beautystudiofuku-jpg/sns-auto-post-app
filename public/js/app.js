@@ -255,9 +255,9 @@ function toggleInstagramSchedule() {
   const scheduleGroup = document.getElementById('instagram-schedule-group');
 
   if (postType === 'story') {
-    // ストーリーはキャプション不可、予約不可
+    // ストーリーはキャプション不可。予約はサーバー側スケジューラーで対応
     if (captionGroup) captionGroup.style.display = 'none';
-    if (scheduleGroup) scheduleGroup.style.display = 'none';
+    if (scheduleGroup) scheduleGroup.style.display = 'block';
   } else {
     if (captionGroup) captionGroup.style.display = 'block';
     if (scheduleGroup) scheduleGroup.style.display = 'block';
