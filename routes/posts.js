@@ -257,7 +257,7 @@ router.post('/:id/cancel', (req, res) => {
 
 // Google Business Profile 投稿
 router.post('/google', async (req, res) => {
-  const { sns_account_id, summary, call_to_action_type, call_to_action_url, scheduled_publish_time } = req.body;
+  const { sns_account_id, summary, call_to_action_type, call_to_action_url, scheduled_publish_time, media_url } = req.body;
 
   if (!sns_account_id || !summary) {
     return res.status(400).json({ error: 'アカウントと投稿内容は必須です' });
@@ -270,9 +270,9 @@ router.post('/google', async (req, res) => {
   // 予約投稿: サーバー側スケジューラーに委ねる
   if (scheduled_publish_time) {
     const postResult = db.prepare(`
-      INSERT INTO posts (sns_account_id, title, post_platform, scheduled_at, status)
-      VALUES (?, ?, 'google_business', ?, 'approved')
-    `).run(sns_account_id, summary, scheduled_publish_time);
+      INSERT INTO posts (sns_account_id, title, image_url, post_platform, scheduled_at, status)
+      VALUES (?, ?, ?, 'google_business', ?, 'approved')
+    `).run(sns_account_id, summary, media_url || null, scheduled_publish_time);
 
     db.prepare('INSERT INTO activity_log (store_id, sns_account_id, post_id, action, details) VALUES (?, ?, ?, ?, ?)')
       .run(account.store_id, sns_account_id, postResult.lastInsertRowid, 'post_scheduled',
@@ -302,6 +302,7 @@ router.post('/google', async (req, res) => {
       summary,
       callToActionType: call_to_action_type,
       callToActionUrl: call_to_action_url,
+      mediaUrl: media_url || null,
     });
 
     // 投稿記録をDBに保存

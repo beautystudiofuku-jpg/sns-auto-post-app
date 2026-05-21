@@ -155,6 +155,7 @@ async function executePost(post) {
 
       const result = await createLocalPost(accessToken, accountName, locationPart, {
         summary: title || '',
+        mediaUrl: image_url || null,
       });
 
       db.prepare('UPDATE posts SET status = ?, platform_post_id = ?, published_at = datetime(\'now\'), updated_at = datetime(\'now\') WHERE id = ?')

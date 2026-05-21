@@ -602,6 +602,16 @@ setupImageDropZone(
   (url) => { facebookUploadedImageUrl = url; }
 );
 
+let googleUploadedImageUrl = null;
+setupImageDropZone(
+  'google-drop-zone',
+  'google-image-input',
+  'google-image-preview-area',
+  'google-image-preview',
+  'google-image-status',
+  (url) => { googleUploadedImageUrl = url; }
+);
+
 function clearInstagramImage() {
   instagramUploadedImageUrl = null;
   document.getElementById('instagram-image-preview-area').style.display = 'none';
@@ -616,6 +626,14 @@ function clearFacebookImage() {
   document.getElementById('facebook-drop-zone').style.display = 'block';
   document.getElementById('facebook-image-input').value = '';
   document.getElementById('facebook-image-status').textContent = '';
+}
+
+function clearGoogleImage() {
+  googleUploadedImageUrl = null;
+  document.getElementById('google-image-preview-area').style.display = 'none';
+  document.getElementById('google-drop-zone').style.display = 'block';
+  document.getElementById('google-image-input').value = '';
+  document.getElementById('google-image-status').textContent = '';
 }
 
 // ===== Instagram投稿 =====
@@ -744,11 +762,14 @@ async function submitGooglePost() {
   btn.textContent = '投稿中...';
 
   try {
+    const mediaUrl = googleUploadedImageUrl || document.getElementById('google-image-url').value.trim();
+
     const body = {
       sns_account_id: parseInt(accountId),
       summary,
       call_to_action_type: document.getElementById('google-cta-type').value || null,
       call_to_action_url: document.getElementById('google-cta-url').value || null,
+      media_url: mediaUrl || null,
     };
 
     const googleScheduleEl = document.getElementById('google-schedule');
@@ -767,6 +788,8 @@ async function submitGooglePost() {
     document.getElementById('google-cta-type').value = '';
     document.getElementById('google-cta-url').value = '';
     document.getElementById('google-cta-url-group').style.display = 'none';
+    document.getElementById('google-image-url').value = '';
+    if (typeof clearGoogleImage === 'function') clearGoogleImage();
     if (googleScheduleEl) googleScheduleEl.value = '';
 
   } catch (err) {
