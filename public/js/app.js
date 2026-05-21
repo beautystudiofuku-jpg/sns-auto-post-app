@@ -518,7 +518,8 @@ function statusLabel(status) {
 
 // ===== 共通: 画像アップロード処理 =====
 // ファイル選択時にサーバーへアップして公開URLを返す
-async function uploadImageFile(file, statusEl) {
+// ratio: 'story' を指定すると 1080×1920 9:16 にサーバー側で自動変換
+async function uploadImageFile(file, statusEl, ratio) {
   const maxSize = 8 * 1024 * 1024;
   if (file.size > maxSize) {
     throw new Error('画像サイズは8MB以下にしてください');
@@ -528,12 +529,13 @@ async function uploadImageFile(file, statusEl) {
     throw new Error('対応形式: JPG, PNG');
   }
 
-  if (statusEl) statusEl.textContent = 'アップロード中...';
+  if (statusEl) statusEl.textContent = ratio === 'story' ? '9:16に変換してアップロード中...' : 'アップロード中...';
 
   const formData = new FormData();
   formData.append('image', file);
 
-  const res = await fetch('/api/posts/upload-image', { method: 'POST', body: formData });
+  const query = ratio ? `?ratio=${encodeURIComponent(ratio)}` : '';
+  const res = await fetch('/api/posts/upload-image' + query, { method: 'POST', body: formData });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'アップロードに失敗しました');
 
@@ -544,7 +546,7 @@ async function uploadImageFile(file, statusEl) {
 // ===== Instagram用 画像選択処理 =====
 let instagramUploadedImageUrl = null;
 
-function setupImageDropZone(zoneId, inputId, previewAreaId, previewImgId, statusId, urlSetter) {
+function setupImageDropZone(zoneId, inputId, previewAreaId, previewImgId, statusId, urlSetter, ratioFn) {
   const zone = document.getElementById(zoneId);
   const input = document.getElementById(inputId);
   if (!zone || !input) return;
@@ -572,7 +574,8 @@ function setupImageDropZone(zoneId, inputId, previewAreaId, previewImgId, status
     previewArea.style.display = 'block';
 
     try {
-      const url = await uploadImageFile(file, statusEl);
+      const ratio = typeof ratioFn === 'function' ? ratioFn() : null;
+      const url = await uploadImageFile(file, statusEl, ratio);
       urlSetter(url);
     } catch (err) {
       showToast(err.message, 'error');
@@ -583,13 +586,18 @@ function setupImageDropZone(zoneId, inputId, previewAreaId, previewImgId, status
 }
 
 // Instagram/Facebookの画像ドロップゾーンをセットアップ
+// Instagramはストーリー選択時に9:16自動変換する
 setupImageDropZone(
   'instagram-drop-zone',
   'instagram-image-input',
   'instagram-image-preview-area',
   'instagram-image-preview',
   'instagram-image-status',
-  (url) => { instagramUploadedImageUrl = url; }
+  (url) => { instagramUploadedImageUrl = url; },
+  () => {
+    const type = document.getElementById('instagram-post-type');
+    return type && type.value === 'story' ? 'story' : null;
+  }
 );
 
 let facebookUploadedImageUrl = null;

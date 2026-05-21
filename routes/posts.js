@@ -13,6 +13,7 @@ const config = require('../config');
 const { canPost, recordPost } = require('../services/rate-limiter');
 const { logger } = require('../middleware/error-handler');
 const r2 = require('../services/storage/r2');
+const sharp = require('sharp');
 
 // 動画アップロード設定
 const storage = multer.diskStorage({
@@ -69,16 +70,49 @@ router.post('/upload', upload.single('video'), (req, res) => {
 
 // 画像アップロード（Instagram/Facebook用）
 // R2 が設定されていれば R2 に保存、未設定ならローカル保存にフォールバック
+// ratio=story の場合は 1080×1920 (9:16) にfitしてぼかし背景で埋める
 router.post('/upload-image', imageUpload.single('image'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: '画像ファイルが必要です' });
 
   try {
+    let filePath = req.file.path;
+    let mimeType = req.file.mimetype;
+
+    // ストーリー用変換: 1080×1920 9:16 contain + ぼかし背景
+    if (req.query.ratio === 'story') {
+      const input = await sharp(req.file.path).rotate().toBuffer();
+
+      const background = await sharp(input)
+        .resize(1080, 1920, { fit: 'cover' })
+        .blur(40)
+        .toBuffer();
+
+      const foreground = await sharp(input)
+        .resize(1080, 1920, { fit: 'inside' })
+        .toBuffer();
+      const fgMeta = await sharp(foreground).metadata();
+
+      const outPath = filePath.replace(/(\.[^.]+)$/, '-story.jpg');
+      await sharp(background)
+        .composite([{
+          input: foreground,
+          top: Math.round((1920 - fgMeta.height) / 2),
+          left: Math.round((1080 - fgMeta.width) / 2),
+        }])
+        .jpeg({ quality: 90 })
+        .toFile(outPath);
+
+      filePath = outPath;
+      mimeType = 'image/jpeg';
+      logger.info('ストーリー用画像変換 (1080x1920): ' + path.basename(outPath));
+    }
+
     if (config.useR2) {
       // R2 にアップロード（外部からアクセス可能）
-      const result = await r2.uploadFromLocalPath(req.file.path, req.file.mimetype, 'images');
+      const result = await r2.uploadFromLocalPath(filePath, mimeType, 'images');
       logger.info(`R2 画像アップロード成功: ${result.key}`);
       return res.json({
-        filename: req.file.filename,
+        filename: path.basename(filePath),
         size: req.file.size,
         url: result.url,
         storage: 'r2',
@@ -87,10 +121,10 @@ router.post('/upload-image', imageUpload.single('image'), async (req, res) => {
 
     // R2 未設定: ローカルURLを返す（外部からは見えない）
     const baseUrl = process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`;
-    const publicUrl = `${baseUrl}/uploads/${req.file.filename}`;
+    const publicUrl = `${baseUrl}/uploads/${path.basename(filePath)}`;
     res.json({
-      filename: req.file.filename,
-      path: req.file.path,
+      filename: path.basename(filePath),
+      path: filePath,
       size: req.file.size,
       url: publicUrl,
       storage: 'local',
