@@ -1,6 +1,103 @@
 # SNS自動投稿システム - セッションログ
 
-## 2026/5/21 セッション 🎉 本番デプロイ達成日
+## 2026/5/21 セッション（2回目） 🎉 本番運用開始日
+
+### 今回やったこと
+
+#### 1. 本番への華音店舗データ登録
+- API経由で本番DBに「華音」（ID=1）追加
+- 本番DBは前回デプロイ時点で空だったため、再構築開始
+
+#### 2. Meta（Instagram/Facebook）本番URL対応
+- Meta Developer Console の「Facebookログイン → 設定」に本番リダイレクトURI追加
+  - `https://sns-auto-post-app.onrender.com/auth/meta/callback`
+- アプリ設定「ベーシック」のアプリドメイン・サイトURLにも本番URL追加
+- **問題発生**: 連携時に `localhost:3456` にリダイレクトされエラー
+  - 原因: `docs/meta-callback.html`（GitHub Pages中継ページ）が `localhost:3456` にハードコーディング
+- **解決**: Render環境変数 `META_REDIRECT_URI` を本番URLに書き換え（中継ページ不要に）
+- 本番でInstagram再連携成功 → kanon.nakasu 登録完了
+
+#### 3. Google Business Profile 本番URL対応
+- Google Cloud Console「認証情報」の OAuth クライアントに本番URI追加
+  - `https://sns-auto-post-app.onrender.com/auth/google/callback`
+- ローカルURIは残したまま
+- 本番でGoogle再連携成功 → 華音アカウント登録完了
+
+#### 4. ローカルの未プッシュコミット発覚 → プッシュ
+- 本番UIが古いまま（画像URL指定の旧版）の原因を調査
+- ローカルに2コミット未プッシュ（`05faa12`, `e6e2e85`）
+- `git push origin main` → 本番に画像アップロード機能が反映
+
+#### 5. Google投稿に画像添付機能を追加（新規実装）
+- Google Business Profile API は元から画像（PHOTO）対応していたが、UIが未対応だった
+- `public/index.html`: Google用フォームにドラッグ&ドロップ画像欄追加
+- `public/js/app.js`: `googleUploadedImageUrl` 管理、`media_url` を送信
+- `routes/posts.js`: `media_url` を受け取り `createLocalPost` の `mediaUrl` に渡す
+- `services/scheduler.js`: 予約投稿時も `image_url` を `mediaUrl` で渡す
+- 本番Google画像投稿 **テスト成功**
+
+#### 6. Instagram ストーリー 9:16自動変換機能（新規実装）
+- 問題: ストーリーに正方形画像を上げると見切れる
+- `sharp` パッケージ追加
+- `/api/posts/upload-image?ratio=story` で 1080×1920 9:16に変換
+  - 背景: 元画像をぼかして全面に配置
+  - 前景: 元画像を縦長サイズにfit して中央配置
+- フロントは投稿タイプ=story 選択時に `ratio=story` を付けてアップ
+- 本番ストーリー投稿 **テスト成功**（kanon.nakasuのストーリーで確認）
+
+#### 7. Instagram ストーリー予約投稿を解放
+- バックエンドはすでに `instagram_story` 予約投稿対応していた（5/15実装済み）
+- フロントUIだけが「ストーリー=予約不可」になっていたのを修正
+- `toggleInstagramSchedule()` でストーリー選択時も予約日時欄を表示
+
+#### 8. 本番DBに残り4店舗を一括登録
+- API経由で本番DBに追加:
+  - ID=2: Nancy's Diner
+  - ID=3: なべやかん
+  - ID=4: あきさんのご飯
+  - ID=5: Beauty studio fuku
+
+#### 9. 店舗担当者向け案内文書を作成
+- `店舗担当者向け案内.md` 新規作成
+- SNS連携前の準備チェックリスト、連携手順、現在の制約事項を記載
+
+### 投稿動作確認結果（本番）
+
+| プラットフォーム | 状態 |
+|---|---|
+| Instagram フィード投稿 | ✅ 成功 |
+| Instagram ストーリー投稿（9:16自動変換） | ✅ 成功 |
+| Google Business Profile 投稿 | ✅ 成功 |
+| Facebook 単独投稿 | ⏭ 不要（Instagram連動で自動シェア） |
+| TikTok 投稿 | ⏳ 審査中のため本番連携未実施 |
+
+### 重要な気付き
+
+- **他店舗の連携には各SNSの「審査通過」が必要**
+  - TikTok: In Review（5/15再提出）
+  - Meta: App Review未申請（ビジネス認証は完了済み）
+  - Google: OAuth同意画面の本番公開未申請
+- 他店舗を本番DBに登録しても審査前は実際には連携できない
+- **「他店舗追加」より「審査通過」が先**
+
+### 課金状況（変化なし）
+- Render: 個人カード（$7.25/月）
+- Cloudflare R2: 個人カード（無料枠内）
+- Meta: 個人カード（認証完了済み）
+
+### 次回やること（優先順）
+
+1. **Meta App Review 申請**（一番進めやすい、ビジネス認証済み）
+   - デモ動画作成（Instagram連携 → 投稿の流れ）
+   - Permissions & Features で各権限の用途説明
+   - Submit
+2. **Google OAuth 本番公開申請**
+3. **TikTok審査結果確認**（5/15再提出から1週間以上経過）
+4. 審査通過後: 店舗担当者へ案内文書を共有、各店舗連携開始
+
+---
+
+## 2026/5/21 セッション（1回目） 🎉 本番デプロイ達成日
 
 ### 今回やったこと
 
