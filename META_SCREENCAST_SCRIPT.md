@@ -1,6 +1,6 @@
 # Screencast Script for Meta App Review
 
-Target length: **3 to 5 minutes**.
+Target length: **2 to 4 minutes** (Facebook posting scene removed because `pages_manage_posts` is out of scope for this submission).
 Resolution: **1920×1080 minimum** (Win + Shift + R / Xbox Game Bar is fine).
 Audio: optional, but English **on-screen captions are required** for every scene.
 
@@ -94,24 +94,7 @@ Audio: optional, but English **on-screen captions are required** for every scene
 
 ---
 
-## Scene 7 — Publish a Facebook Page post (30 sec)
-
-**Action:**
-1. New Post → Account: `[華音] Facebook - kanon.nakasu`.
-2. Type a short message.
-3. Optionally drop an image.
-4. Click "投稿する".
-5. Switch to the "華音 中洲" Facebook Page — show the new post is live.
-
-**English captions:**
-- "Selecting the Facebook Page destination."
-- "App fetches the Page Access Token via `GET /me/accounts` (this is why `pages_show_list` + `pages_read_engagement` are needed)."
-- "Then calls `POST /{page-id}/photos` (or `/feed` for text-only). This is `pages_manage_posts` in action."
-- "Confirmed live on the 華音 中洲 Page."
-
----
-
-## Scene 8 — Demonstrate data deletion (15 sec)
+## Scene 7 — Demonstrate data deletion (15 sec)
 
 **Action:**
 1. Go back to the home (Stores) screen.
@@ -124,7 +107,7 @@ Audio: optional, but English **on-screen captions are required** for every scene
 
 ---
 
-## Scene 9 — Closing card (5 sec)
+## Scene 8 — Closing card (5 sec)
 
 **On-screen text:**
 > Privacy Policy: https://beautystudiofuku-jpg.github.io/sns-auto-post-app/privacy.html

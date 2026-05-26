@@ -6,7 +6,7 @@ Thank you for reviewing sns-auto-post. The app is an internal social-media-publi
 
 - **Production URL:** https://sns-auto-post-app.onrender.com
 - **Connected test account (already set up):** Instagram Business account `kanon.nakasu` linked to Facebook Page `華音 中洲`. This account is owned by our company and belongs to the venue "華音".
-- **What the app does:** Lets a store manager log in (via Meta OAuth), pick an image, write a caption, and publish to (a) Instagram as a feed post, (b) Instagram as a Story, or (c) Facebook Page. Scheduled publishing is also supported.
+- **What the app does:** Lets a store manager log in (via Meta OAuth), pick an image, write a caption, and publish to Instagram either (a) as a feed post or (b) as a Story. Scheduled publishing is also supported. (Posts shared to the connected Facebook Page rely on Instagram's native "Share to Facebook" linkage; the app does not call Facebook Page APIs directly.)
 
 ## How to Exercise Each Permission
 
@@ -41,14 +41,7 @@ To save you setup time, store "華音" is already connected. You can simply open
 2. The app saves the request to its own database with status `approved`. A server-side cron job runs once per minute and triggers the same two-step publish flow when the scheduled time arrives.
 3. We deliberately do not use Meta's native `scheduled_publish_time` parameter because (a) it is only available after App Review approval and (b) using a server-side scheduler lets us coordinate scheduling across multiple platforms (TikTok / Instagram / Facebook / Google Business Profile) with a single UI.
 
-### Step 6 — Publish a Facebook Page post (`pages_manage_posts`, `pages_show_list`, `pages_read_engagement`)
-1. New Post tab.
-2. Account select: choose `[華音] Facebook - kanon.nakasu`.
-3. Type a message. Optionally drop an image.
-4. Click "投稿する" (Publish).
-5. The app fetches the Page Access Token (using `GET /me/accounts?fields=id,access_token`), then calls either `POST /{page-id}/feed` (text only) or `POST /{page-id}/photos` (with image). The post will appear on the "華音 中洲" Facebook Page.
-
-### Step 7 — Verify data deletion (`instagram_basic`)
+### Step 6 — Verify data deletion (`instagram_basic`)
 1. Go back to the home screen.
 2. On the "華音" card's Instagram row, click "解除" (Disconnect).
 3. The app immediately deletes the encrypted access token and Instagram Business Account ID from its database. Any future publish attempt requires re-authorization.

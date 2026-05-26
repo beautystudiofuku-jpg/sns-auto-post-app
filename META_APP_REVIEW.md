@@ -18,8 +18,11 @@ Terms of Service: **https://beautystudiofuku-jpg.github.io/sns-auto-post-app/ter
 | `instagram_content_publish` | Submit |
 | `pages_show_list` | Submit |
 | `pages_read_engagement` | Submit |
-| `pages_manage_posts` | Submit |
 | `public_profile` | Default (no review needed) |
+
+> Note: This app does not request `pages_manage_posts`. Facebook Page
+> content is published indirectly via Instagram's "Share to Facebook"
+> linkage on the connected Page, not via direct Page-feed posting.
 
 ---
 
@@ -70,18 +73,6 @@ Yes. This permission is required for the initial connection step.
 **Will users be able to access this feature in a published state?**
 
 Yes. This permission is required for the initial connection step.
-
----
-
-### 5. `pages_manage_posts`
-
-**How will your app use this permission?**
-
-The app lets a store manager publish text and image posts to the Facebook Page of their venue (for example, posting today's special menu to the "華音 中洲" Facebook Page). The app uses `pages_manage_posts` together with the Page Access Token to call `POST /{page-id}/feed` (text posts) or `POST /{page-id}/photos` (image posts). The store manager must explicitly click "Post to Facebook" to trigger publishing; the app never posts on its own. Scheduled Facebook posts are also supported via the same server-side cron job described for Instagram.
-
-**Will users be able to access this feature in a published state?**
-
-Yes. This is used by store managers to keep their venue's Facebook Page updated.
 
 ---
 
