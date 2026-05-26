@@ -1,5 +1,48 @@
 # SNS自動投稿システム - セッションログ
 
+## 2026/5/26 セッション 🐛 予約投稿バグ修正
+
+### 報告された現象
+- Instagramストーリーで日時指定して予約投稿したのに、すぐに上がってしまった
+
+### 調査で見つかったバグ2件
+
+#### バグ① ストーリー予約が完全に無視されていた
+- `public/js/app.js`: `submitInstagramPost()` で `postType === 'feed'` の時だけ `scheduled_publish_time` を送る作りになっていた
+- ストーリーは予約時刻がbodyに含まれず即時投稿パスに進んでいた
+- 前回（5/21）にUI側で「ストーリーでも予約欄を表示」する修正は入っていたが、送信側の修正漏れ
+- **修正**: feed/storyどちらでも `scheduled_publish_time` を送るよう変更
+
+#### バグ② 全予約投稿が9時間遅れて発火するタイムゾーン問題
+- フロント `<input type="datetime-local">` はタイムゾーン情報なしのローカル時刻文字列を返す（JST）
+- `routes/posts.js` の Instagram/Facebook/Google 予約パスはそれをそのままDBに保存
+- `services/scheduler.js` は `datetime('now')`（**UTC**）と比較
+- 結果: JST 12:30 指定 → 実際の発火は UTC 12:30（JST 21:30）= **9時間遅れ**
+- ローカルDBで実証確認済み
+- **修正**: 新規 `utils/timezone.js` を作って保存前に JST→UTC 変換、3箇所の予約ルートで適用
+
+### 検証
+- ローカルでAPI叩いてDB保存値を確認：JST 12:13 入力 → UTC 03:13 で保存 ✅
+- サーバーログにも `JST=... UTC=...` 両方を出力するよう変更
+- 既存の即時投稿パスは無変更（影響なし）
+
+### コミット
+- `a85495c` Fix scheduled story posts and timezone offset
+- 一緒に未プッシュだった `a5a45be`（5/21の店舗案内ドキュメント追加）も本番反映
+
+### 次回確認すべきこと
+1. **Render本番で実際にストーリー予約投稿してみて、指定時刻にちゃんと上がるか**（最重要）
+2. 同じく Instagram フィード予約 / Facebook予約 / Google予約 もタイムゾーンOK か
+3. TikTok審査ステータス確認（5/15再提出から11日経過、まだIn Review想定）
+4. Meta App Review 申請
+5. Google OAuth 本番公開申請
+
+### 注意点（次回のために）
+- Render本番のNode.jsプロセスはUTCで動いている前提で修正している
+- もしRender側のタイムゾーン設定を変える場合は `utils/timezone.js` の前提も見直すこと
+
+---
+
 ## 2026/5/21 セッション（2回目） 🎉 本番運用開始日
 
 ### 今回やったこと
