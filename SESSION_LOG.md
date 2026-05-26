@@ -47,6 +47,61 @@
 4. Meta App Review 申請
 5. Google OAuth 本番公開申請
 
+---
+
+## 2026/5/26 セッション（午後） 📋 Meta App Review 申請準備
+
+### やったこと
+
+#### 1. Meta OAuth スコープを最終確定
+- 紆余曲折あり: 一度 `instagram_business_*`（Instagram Login用）に変えてしまい OAuth で "Invalid Scopes" エラー → 元の `instagram_*`（Facebook Login用）に戻した
+- 試しに `pages_manage_posts` を追加したが、Meta アプリ側で Use Case 未登録のためこれも "Invalid Scopes"
+- 最終スコープ: `instagram_basic, instagram_content_publish, pages_show_list, pages_read_engagement`
+- Facebook単独ページ投稿機能はコード残置、OAuthスコープから除外（必要になったら追加申請）
+
+#### 2. プライバシーポリシー / 利用規約を Meta 要件に合わせて整備
+- 運営会社 KOKO K.K. (Night Safari Group) 明記
+- データ削除手順セクション（Section 8）追加 ← Meta必須項目
+- 取得データの種類を Page list / IG Business Account ID 含めて拡充
+- 連絡先ブロックに会社名・サイトURLも追記
+- `docs/privacy.html`, `docs/terms.html` 更新済み・GitHub Pages反映済み
+
+#### 3. App Review 提出用ドキュメント 3点を作成
+- `META_APP_REVIEW.md`: 権限ごとの Use Case 説明文（英語、Metaダッシュボード貼り付け用）
+- `META_REVIEWER_INSTRUCTIONS.md`: レビュアー向け step-by-step テスト手順書（英語）
+- `META_SCREENCAST_SCRIPT.md`: スクリーンキャストの台本（8シーン、英語キャプション込み）
+
+#### 4. 録画用アセット生成
+- `meta_review_assets/title_card.png`: 動画冒頭5秒のタイトル画像（1920×1080）
+- `meta_review_assets/test_image_feed.jpg`: フィード投稿用テスト画像（1080×1080）
+- `meta_review_assets/test_image_story.jpg`: ストーリー投稿用テスト画像（1080×1920）
+- `meta_review_assets/cheat_01〜06.png`: スマホ携帯用カンペ画像6枚（1080×1920、シーン別）
+
+#### 5. Instagram 再連携完了
+- 古いスコープで取得したトークンを破棄し新スコープで取り直し
+- `kanon.nakasu` 緑ドットで連携状態 OK
+
+### 残タスク
+1. **スクリーンキャスト録画**（ユーザー作業、後日）
+2. **Meta開発者ポータルで App Review 提出**（ユーザー作業、録画後）
+
+### TikTok 代替手段の検討（リサーチのみ）
+
+- 「審査なしで完全自動投稿」は不可能と判明
+- ただし **Upload (Draft Mode / `video.upload` スコープ)** なら審査不要
+  - フロー: アプリで動画+キャプション送信 → TikTokアプリ受信箱に通知 → ユーザーが通知タップ → 投稿画面で最終確定して公開
+  - メリット: 審査いらない、SELF_ONLY制限なし、誤投稿リスク低い
+  - デメリット: 最後の「投稿」ボタンだけ人間が押す（完全自動ではない）、予約はTikTokアプリ側
+- 実装は `services/tiktok/post.js` の `initializeDirectPost` を `initializeUpload` に差し替えるだけ（30分〜1時間）
+- **判断**: TikTok審査結果次第で決める。リジェクトされたら Draft Mode 実装に切替検討
+
+### コミット
+- `aa84bf6` Revert to Facebook-Login scope names
+- `f2cf230` Drop pages_manage_posts from Meta App Review scope
+
+### 補足
+- ユーザーが `.env` を確認のため一時的に IDE で開いた（編集なし）
+
 ### 注意点（次回のために）
 - Render本番のNode.jsプロセスはUTCで動いている前提で修正している
 - もしRender側のタイムゾーン設定を変える場合は `utils/timezone.js` の前提も見直すこと
