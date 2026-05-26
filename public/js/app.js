@@ -671,9 +671,9 @@ async function submitInstagramPost() {
       post_type: postType,
     };
 
-    // 予約日時（通常投稿のみ）
+    // 予約日時（通常投稿・ストーリーどちらも対応：サーバー側スケジューラーが処理）
     const scheduleEl = document.getElementById('instagram-schedule');
-    if (scheduleEl && scheduleEl.value && postType === 'feed') {
+    if (scheduleEl && scheduleEl.value) {
       body.scheduled_publish_time = scheduleEl.value;
     }
 

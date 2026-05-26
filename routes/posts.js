@@ -14,6 +14,7 @@ const { canPost, recordPost } = require('../services/rate-limiter');
 const { logger } = require('../middleware/error-handler');
 const r2 = require('../services/storage/r2');
 const sharp = require('sharp');
+const { jstLocalStringToUtcSqlite } = require('../utils/timezone');
 
 // 動画アップロード設定
 const storage = multer.diskStorage({
@@ -303,16 +304,17 @@ router.post('/google', async (req, res) => {
 
   // 予約投稿: サーバー側スケジューラーに委ねる
   if (scheduled_publish_time) {
+    const scheduledUtc = jstLocalStringToUtcSqlite(scheduled_publish_time);
     const postResult = db.prepare(`
       INSERT INTO posts (sns_account_id, title, image_url, post_platform, scheduled_at, status)
       VALUES (?, ?, ?, 'google_business', ?, 'approved')
-    `).run(sns_account_id, summary, media_url || null, scheduled_publish_time);
+    `).run(sns_account_id, summary, media_url || null, scheduledUtc);
 
     db.prepare('INSERT INTO activity_log (store_id, sns_account_id, post_id, action, details) VALUES (?, ?, ?, ?, ?)')
       .run(account.store_id, sns_account_id, postResult.lastInsertRowid, 'post_scheduled',
-        JSON.stringify({ platform: 'google_business', scheduled_at: scheduled_publish_time }));
+        JSON.stringify({ platform: 'google_business', scheduled_at_jst: scheduled_publish_time, scheduled_at_utc: scheduledUtc }));
 
-    logger.info(`Google予約登録: account ${sns_account_id}, scheduled_at ${scheduled_publish_time}`);
+    logger.info(`Google予約登録: account ${sns_account_id}, scheduled_at JST=${scheduled_publish_time} UTC=${scheduledUtc}`);
     return res.json({
       message: 'Googleビジネスプロフィールに予約投稿しました（サーバー側スケジューラー）',
       data: { postId: postResult.lastInsertRowid, scheduled: true, scheduled_at: scheduled_publish_time },
@@ -373,18 +375,19 @@ router.post('/instagram', async (req, res) => {
 
   // 予約投稿: サーバー側スケジューラーに委ねる（API の scheduled_publish_time は使わない）
   if (scheduled_publish_time) {
+    const scheduledUtc = jstLocalStringToUtcSqlite(scheduled_publish_time);
     const postPlatform = post_type === 'story' ? 'instagram_story' : 'instagram';
     const postResult = db.prepare(`
       INSERT INTO posts (sns_account_id, title, image_url, post_platform, scheduled_at, status)
       VALUES (?, ?, ?, ?, ?, 'approved')
-    `).run(sns_account_id, caption || '', image_url, postPlatform, scheduled_publish_time);
+    `).run(sns_account_id, caption || '', image_url, postPlatform, scheduledUtc);
 
     db.prepare('INSERT INTO activity_log (store_id, sns_account_id, post_id, action, details) VALUES (?, ?, ?, ?, ?)')
       .run(account.store_id, sns_account_id, postResult.lastInsertRowid, 'post_scheduled',
-        JSON.stringify({ platform: postPlatform, type: post_type || 'feed', scheduled_at: scheduled_publish_time }));
+        JSON.stringify({ platform: postPlatform, type: post_type || 'feed', scheduled_at_jst: scheduled_publish_time, scheduled_at_utc: scheduledUtc }));
 
     const typeLabel = post_type === 'story' ? 'ストーリー' : '通常投稿';
-    logger.info(`Instagram${typeLabel}予約登録: account ${sns_account_id}, scheduled_at ${scheduled_publish_time}`);
+    logger.info(`Instagram${typeLabel}予約登録: account ${sns_account_id}, scheduled_at JST=${scheduled_publish_time} UTC=${scheduledUtc}`);
     return res.json({
       message: `Instagramに${typeLabel}を予約しました（サーバー側スケジューラー）`,
       data: { postId: postResult.lastInsertRowid, scheduled: true, scheduled_at: scheduled_publish_time },
@@ -443,16 +446,17 @@ router.post('/facebook', async (req, res) => {
 
   // 予約投稿: サーバー側スケジューラーに委ねる（API の scheduled_publish_time は使わない）
   if (scheduled_publish_time) {
+    const scheduledUtc = jstLocalStringToUtcSqlite(scheduled_publish_time);
     const postResult = db.prepare(`
       INSERT INTO posts (sns_account_id, title, image_url, post_platform, scheduled_at, status)
       VALUES (?, ?, ?, 'facebook', ?, 'approved')
-    `).run(sns_account_id, message, image_url || null, scheduled_publish_time);
+    `).run(sns_account_id, message, image_url || null, scheduledUtc);
 
     db.prepare('INSERT INTO activity_log (store_id, sns_account_id, post_id, action, details) VALUES (?, ?, ?, ?, ?)')
       .run(account.store_id, sns_account_id, postResult.lastInsertRowid, 'post_scheduled',
-        JSON.stringify({ platform: 'facebook', scheduled_at: scheduled_publish_time }));
+        JSON.stringify({ platform: 'facebook', scheduled_at_jst: scheduled_publish_time, scheduled_at_utc: scheduledUtc }));
 
-    logger.info(`Facebook予約登録: account ${sns_account_id}, scheduled_at ${scheduled_publish_time}`);
+    logger.info(`Facebook予約登録: account ${sns_account_id}, scheduled_at JST=${scheduled_publish_time} UTC=${scheduledUtc}`);
     return res.json({
       message: 'Facebookページに予約投稿しました（サーバー側スケジューラー）',
       data: { postId: postResult.lastInsertRowid, scheduled: true, scheduled_at: scheduled_publish_time },
