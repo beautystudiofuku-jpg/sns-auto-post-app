@@ -30,9 +30,19 @@
 - `a85495c` Fix scheduled story posts and timezone offset
 - 一緒に未プッシュだった `a5a45be`（5/21の店舗案内ドキュメント追加）も本番反映
 
+### 本番での実証結果（同日確認）
+- post id=6 (Instagram Story): JST 12:35:00 予約 → JST 12:35:13 に発火・投稿成功（13秒遅延=cron毎分発火の許容範囲）
+- kanon.nakasu のストーリーに実際に表示されることをユーザーが目視確認
+- platform_post_id `18065614850416480` 取得済み
+- **修正は完全に機能している**
+
+### 追加でデプロイした改善
+- `services/scheduler.js`: 予約投稿失敗時に Meta/Google API のレスポンス詳細（apiDetail）も DB に保存するよう改善
+  - 今後同様の障害が起きた時、`/api/posts?status=failed` で即座に原因特定できる
+
 ### 次回確認すべきこと
-1. **Render本番で実際にストーリー予約投稿してみて、指定時刻にちゃんと上がるか**（最重要）
-2. 同じく Instagram フィード予約 / Facebook予約 / Google予約 もタイムゾーンOK か
+1. ~~Render本番でストーリー予約投稿が指定時刻に上がるか~~ ✅ 完了
+2. Instagram フィード予約 / Facebook予約 / Google予約 も同じ修正が効くか（仕組み上は効くはず、念のため実投稿で確認推奨）
 3. TikTok審査ステータス確認（5/15再提出から11日経過、まだIn Review想定）
 4. Meta App Review 申請
 5. Google OAuth 本番公開申請
