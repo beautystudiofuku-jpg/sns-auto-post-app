@@ -4,7 +4,7 @@ Target length: **3 to 5 minutes**.
 Resolution: **1920×1080 minimum** (Win + Shift + R / Xbox Game Bar is fine).
 Audio: optional, but English **on-screen captions are required** for every scene.
 
-> **Why captions matter**: Meta reviewers do not read Japanese, and the app's UI is Japanese (the end users are Japanese-speaking store managers). Captions like "permission `instagram_business_content_publish` is used here" are what get the submission approved.
+> **Why captions matter**: Meta reviewers do not read Japanese, and the app's UI is Japanese (the end users are Japanese-speaking store managers). Captions like "permission `instagram_content_publish` is used here" are what get the submission approved.
 
 ---
 
@@ -23,7 +23,7 @@ Audio: optional, but English **on-screen captions are required** for every scene
 2. Hover over the "華音" store card. Show the three green dots (TikTok / Google / Instagram connected).
 
 **English caption:**
-> Production URL. The store "華音" already has its Instagram Business account and Facebook Page connected. The green dot next to Instagram (username: kanon.nakasu) was rendered by reading the username via `instagram_business_basic`.
+> Production URL. The store "華音" already has its Instagram Business account and Facebook Page connected. The green dot next to Instagram (username: kanon.nakasu) was rendered by reading the username via `instagram_basic`.
 
 ---
 
@@ -33,7 +33,7 @@ Audio: optional, but English **on-screen captions are required** for every scene
 - Point at the Instagram row of "華音". Highlight `kanon.nakasu`.
 
 **English caption:**
-> `pages_show_list` + `pages_read_engagement` were used at connection time to call `GET /me/accounts?fields=instagram_business_account` and find the Instagram Business Account that is linked to the Facebook Page. `instagram_business_basic` was then used to read the Instagram username displayed here.
+> `pages_show_list` + `pages_read_engagement` were used at connection time to call `GET /me/accounts?fields=instagram_business_account` and find the Instagram Business Account that is linked to the Facebook Page. `instagram_basic` was then used to read the Instagram username displayed here.
 
 ---
 
@@ -52,7 +52,7 @@ Audio: optional, but English **on-screen captions are required** for every scene
 **English captions (sequence):**
 - "Selecting the Instagram destination account."
 - "Uploading an image — stored in our Cloudflare R2 bucket so Meta can fetch a public URL."
-- "Click Publish. The app now calls `POST /{ig-user-id}/media` (creates container) → polls `status_code` → `POST /{ig-user-id}/media_publish`. This is `instagram_business_content_publish` in action."
+- "Click Publish. The app now calls `POST /{ig-user-id}/media` (creates container) → polls `status_code` → `POST /{ig-user-id}/media_publish`. This is `instagram_content_publish` in action."
 - "Confirmed live on @kanon.nakasu."
 
 ---
@@ -70,7 +70,7 @@ Audio: optional, but English **on-screen captions are required** for every scene
 **English captions:**
 - "Switching post type to Story."
 - "`media_type=STORIES` is added to the container request."
-- "`instagram_business_content_publish` is used again, this time for a Story."
+- "`instagram_content_publish` is used again, this time for a Story."
 - "Story confirmed live."
 
 ---
@@ -89,7 +89,7 @@ Audio: optional, but English **on-screen captions are required** for every scene
 **English captions:**
 - "Scheduling a post 5 minutes in the future."
 - "Time is stored in the app's database. A server-side cron job (one tick per minute) re-runs the two-step publish at the scheduled time."
-- "The same `instagram_business_content_publish` permission is used when the cron triggers."
+- "The same `instagram_content_publish` permission is used when the cron triggers."
 - "Confirmed: scheduled post auto-published at the requested time."
 
 ---

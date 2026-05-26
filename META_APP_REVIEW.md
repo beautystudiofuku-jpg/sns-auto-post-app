@@ -14,8 +14,8 @@ Terms of Service: **https://beautystudiofuku-jpg.github.io/sns-auto-post-app/ter
 
 | Permission | Status |
 |---|---|
-| `instagram_business_basic` | Submit |
-| `instagram_business_content_publish` | Submit |
+| `instagram_basic` | Submit |
+| `instagram_content_publish` | Submit |
 | `pages_show_list` | Submit |
 | `pages_read_engagement` | Submit |
 | `pages_manage_posts` | Submit |
@@ -25,11 +25,11 @@ Terms of Service: **https://beautystudiofuku-jpg.github.io/sns-auto-post-app/ter
 
 ## Use Case Descriptions (paste into the Meta dashboard)
 
-### 1. `instagram_business_basic`
+### 1. `instagram_basic`
 
 **How will your app use this permission?**
 
-sns-auto-post is an internal social media management tool used by KOKO K.K. (Night Safari Group), the operator of multiple restaurants and entertainment venues in Nakasu, Fukuoka, Japan. After a store manager connects an Instagram Business account via Facebook Login, the app uses `instagram_business_basic` to read the connected Instagram Business Account's ID and username. This information is shown in the app's "Store" screen so the manager can confirm which Instagram account is linked to which physical store, and so the publishing screen can display the correct destination account ("posting to @kanon.nakasu"). The permission is also used to fetch the Instagram Business Account ID that is required as the parent node when calling the `/{ig-user-id}/media` and `/{ig-user-id}/media_publish` endpoints in step 2.
+sns-auto-post is an internal social media management tool used by KOKO K.K. (Night Safari Group), the operator of multiple restaurants and entertainment venues in Nakasu, Fukuoka, Japan. After a store manager connects an Instagram Business account via Facebook Login, the app uses `instagram_basic` to read the connected Instagram Business Account's ID and username. This information is shown in the app's "Store" screen so the manager can confirm which Instagram account is linked to which physical store, and so the publishing screen can display the correct destination account ("posting to @kanon.nakasu"). The permission is also used to fetch the Instagram Business Account ID that is required as the parent node when calling the `/{ig-user-id}/media` and `/{ig-user-id}/media_publish` endpoints in step 2.
 
 **Will users be able to access this feature in a published state?**
 
@@ -37,11 +37,11 @@ Yes. After App Review approval, store managers of KOKO K.K.'s venues will use th
 
 ---
 
-### 2. `instagram_business_content_publish`
+### 2. `instagram_content_publish`
 
 **How will your app use this permission?**
 
-This is the core publishing feature of sns-auto-post. After a store manager selects a connected Instagram Business account and uploads an image, the app uses `instagram_business_content_publish` to publish the image either as a feed post (with caption) or as a Story. The flow is the standard two-step Graph API flow: (1) POST `/{ig-user-id}/media` to create a media container (with `media_type=STORIES` for stories, or with `caption` for feed posts), then (2) POST `/{ig-user-id}/media_publish` to publish the container. The app also supports scheduled publishing: the manager picks a future date/time, the app stores the request in its own database, and a server-side cron job runs the same two-step publish at the scheduled time. No content is ever posted without the manager initiating it.
+This is the core publishing feature of sns-auto-post. After a store manager selects a connected Instagram Business account and uploads an image, the app uses `instagram_content_publish` to publish the image either as a feed post (with caption) or as a Story. The flow is the standard two-step Graph API flow: (1) POST `/{ig-user-id}/media` to create a media container (with `media_type=STORIES` for stories, or with `caption` for feed posts), then (2) POST `/{ig-user-id}/media_publish` to publish the container. The app also supports scheduled publishing: the manager picks a future date/time, the app stores the request in its own database, and a server-side cron job runs the same two-step publish at the scheduled time. No content is ever posted without the manager initiating it.
 
 **Will users be able to access this feature in a published state?**
 
