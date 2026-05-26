@@ -174,16 +174,20 @@ async function executePost(post) {
         .run('failed', `未対応プラットフォーム: ${effectivePlatform}`, id);
     }
   } catch (err) {
-    logger.error(`投稿失敗: post ${id} - ${err.message}`);
+    // Meta/Google等の外部APIエラーの詳細レスポンスも保存する
+    const apiDetail = err.response?.data ? JSON.stringify(err.response.data) : null;
+    const fullMessage = apiDetail ? `${err.message} | ${apiDetail}` : err.message;
+    logger.error(`投稿失敗: post ${id} - ${fullMessage}`);
 
     const retryCount = (post.retry_count || 0) + 1;
     const newStatus = retryCount >= (post.max_retries || 3) ? 'failed' : 'approved';
 
     db.prepare('UPDATE posts SET status = ?, error_message = ?, retry_count = ?, updated_at = datetime(\'now\') WHERE id = ?')
-      .run(newStatus, err.message, retryCount, id);
+      .run(newStatus, fullMessage.slice(0, 1000), retryCount, id);
 
     db.prepare('INSERT INTO activity_log (store_id, sns_account_id, post_id, action, details) VALUES (?, ?, ?, ?, ?)')
-      .run(post.store_id, sns_account_id, id, 'post_failed', JSON.stringify({ error: err.message, retryCount }));
+      .run(post.store_id, sns_account_id, id, 'post_failed',
+        JSON.stringify({ error: err.message, apiDetail, retryCount }));
   }
 }
 
