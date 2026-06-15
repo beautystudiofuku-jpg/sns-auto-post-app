@@ -17,7 +17,7 @@
 
 **📝英語キャプション（画面に表示する文）：**
 > sns-auto-post — Internal social media publishing tool for KOKO K.K. (Night Safari Group)
-> App Review demonstration · May 2026
+> App Review demonstration · June 2026
 
 （日本語の意味：KOKO株式会社の社内向けSNS投稿ツール。App Reviewのデモ動画）
 

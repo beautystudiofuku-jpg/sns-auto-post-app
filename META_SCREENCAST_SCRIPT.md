@@ -12,7 +12,7 @@ Audio: optional, but English **on-screen captions are required** for every scene
 
 **On-screen text (English caption):**
 > sns-auto-post — Internal social media publishing tool for KOKO K.K. (Night Safari Group)
-> App Review demonstration · May 2026
+> App Review demonstration · June 2026
 
 ---
 
