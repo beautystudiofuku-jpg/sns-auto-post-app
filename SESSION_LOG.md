@@ -1,5 +1,31 @@
 # SNS自動投稿システム - セッションログ
 
+## 2026/6/15 セッション 📋 Meta審査 録画前準備
+
+### きっかけ
+- ユーザー「メタの申請って必要なの？もう使えてるのに」
+- → 今動いているのは **開発モード（Development Mode）** で、投稿できるのはアプリに登録した自分のアカウント（華音/kanon.nakasu）だけ、と説明
+- → ユーザーは複数店舗展開が目的なので **App Review 通過が必須** と確定
+
+### やったこと
+1. **本番の華音アカウント連携状態を確認**（`GET /api/stores/1/accounts`）
+   - Instagram: トークン有効期限 **2026-07-25**、スコープ4つ（`instagram_basic, instagram_content_publish, pages_show_list, pages_read_engagement`）揃っている → **再連携不要、このまま録画可能**
+   - ⚠️ google_business トークンは **2026-06-15 11:59:59Z（=今日昼）で失効** 予定。録画には影響しないが緑ドットが消える可能性あり。申請対象はInstagram系4権限のみなので審査上は問題なし
+2. **録画アセットをコミット**（`256190d`）
+   - cheat_01〜06.png + test_image_feed.jpg / test_image_story.jpg（5/26生成・未追跡だった8ファイル）
+3. **提出文書を確認** → `META_REVIEWER_INSTRUCTIONS.md` はそのまま貼れる完成度
+4. **録画実行チェックリストを新規作成** → `META_RECORDING_CHECKLIST.md`（台本を要約し「手を動かす順番」だけ1枚に）
+
+### 残タスク（すべてユーザー手作業）
+1. スクリーンキャスト録画（7シーン、`META_RECORDING_CHECKLIST.md` 参照）
+2. 英語キャプション焼き込み（文言は `META_SCREENCAST_SCRIPT.md` からコピペ）
+3. Meta開発者ポータルで App Review 提出
+
+### 補足
+- シーン7（連携解除デモ）は録画を全部終えてから実行すること（解除すると連携が切れ、撮り直しに再連携が必要）
+
+---
+
 ## 2026/5/26 セッション 🐛 予約投稿バグ修正
 
 ### 報告された現象
