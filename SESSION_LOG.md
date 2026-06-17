@@ -1,5 +1,47 @@
 # SNS自動投稿システム - セッションログ
 
+## 2026/6/16-17 セッション 🎉 Meta App Review 録画→提出完了
+
+### 結論
+- **Meta App Review を提出完了**（2026/6/17 未明）
+- 申請権限: `instagram_basic` / `instagram_content_publish` / `pages_show_list` / `pages_read_engagement` + `public_profile`（デフォルト）
+- 結果通知は night.safari.group@gmail.com に来る。審査 数日〜2週間想定
+
+### なぜ申請が必要だったか（ユーザーの疑問に回答）
+- 「もう使えてるのに申請いるの？」→ 今は**開発モード**で、投稿できるのは登録済みの自分（華音/kanon.nakasu）だけ。複数店舗展開には **App Review通過（Live Mode）が必須**
+- ユーザーは複数店舗展開が目的と確定
+
+### やったこと（録画関連）
+1. **連携状態確認**: 華音Instagramトークンは 2026/7/25 まで有効 → 再連携不要で録画できた
+2. **予約投稿の実証**: 録画用に予約投稿（post id=9）をJST 21:47にセット → JST 21:47:14 に発火・投稿成功（platform_post_id=18105100286007797）。5/26のタイムゾーン修正が正しく機能
+3. **録画動画の編集サポート**:
+   - ユーザーが録画（5分35秒、1918×1192）。右側にClaudeチャット画面の映り込みあり
+   - ffmpeg を winget でインストール、`crop=1560:1192:0:0` で右側を切り落とし映り込み除去
+   - キャプションは必須6個に絞った（`META_CAPTION_TIMING.md`）。全権限+データ削除をカバー
+   - 終了画面 `closing_card.png`、アプリアイコン `app_icon.png`(1024×1024) を新規作成。タイトルは June 2026 に更新
+   - 最終動画 `C:\Users\サロン\Desktop\Meta.mp4`（1920×1080, 4分40秒, 51MB）。全シーン・字幕OK確認済み
+
+### やったこと（提出フォーム）
+- **権限の整理が最大の難所**: ユースケース経由で申請したら広告系/メッセージ系/business系など**不要権限8〜9個が混入**。ゴミ箱で削除し、必要4個+public_profileのみに整理（混在のまま出していたら確実に却下だった）
+- **Tech Provider化**: 申請にはTech Provider化が必要（後戻り不可）。複数店舗展開には正しい選択として進めた
+- **ビジネス認証は完了済み**: business.facebook.com で「認証済み 2026/05/16」を確認（代表パスポートで実施済みだった）
+- アプリ設定: アイコン・カテゴリ（ビジネス・ページ）・プライバシーポリシー/利用規約URL を設定
+- データの取り扱い: データ処理事業者として KOKO K.K.(日本) / Render(米) / Cloudflare(米) を登録。データ責任者=KOKO K.K.(日本)。国家安全保障要請は「いいえ」
+- 各権限の説明文は `META_APP_REVIEW.md` の英文、テスト手順は `META_REVIEWER_INSTRUCTIONS.md`、動画は Meta.mp4
+- サイトURLを http→https に修正（https稼働を確認済み）
+
+### 関連ファイル（このセッションで作成/更新）
+- `Meta.mp4`(デスクトップ・提出済み動画), `meta_review_assets/closing_card.*`, `app_icon.*`, `title_card.*`
+- `META_SCREENCAST_SCRIPT_JA.md`, `META_CAPTION_TIMING.md`, `META_RECORDING_CHECKLIST.md`
+
+### 次回確認すべきこと
+1. **Meta審査結果のメール**（night.safari.group@gmail.com）を待つ。承認されたら全店舗のInstagram連携が可能に
+2. 却下された場合は理由を確認して再提出
+3. Googleビジネスのトークンが 2026/6/15 昼に失効していた → 必要なら再連携
+4. TikTok審査ステータス確認
+
+---
+
 ## 2026/6/15 セッション 📋 Meta審査 録画前準備
 
 ### きっかけ
