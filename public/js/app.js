@@ -369,13 +369,16 @@ async function saveDraft() {
 // ===== 投稿管理 =====
 async function loadManagePosts() {
   const filter = document.getElementById('manage-filter').value;
-  const statuses = filter ? [filter] : ['draft', 'scheduled', 'approved', 'uploading', 'processing'];
+  const statuses = filter ? [filter] : ['draft', 'scheduled', 'approved', 'uploading', 'processing', 'published', 'failed', 'cancelled'];
   let allPosts = [];
 
   for (const s of statuses) {
     const posts = await api(`/api/posts?status=${s}`);
     allPosts = allPosts.concat(posts);
   }
+
+  // 「すべて」表示時は新しい順（作成日時の降順）に並べ直す
+  allPosts.sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
 
   const tbody = document.getElementById('manage-table');
   const empty = document.getElementById('manage-empty');
@@ -392,7 +395,7 @@ async function loadManagePosts() {
       <td>${esc(p.store_name)}</td>
       <td>${p.post_platform ? `<span class="platform-badge platform-${platformClass(p.post_platform)}">${platformLabel(p.post_platform)}</span>` : `<span class="platform-badge platform-${p.platform}">${platformLabel(p.platform)}</span>`}</td>
       <td>${esc((p.title || '').substring(0, 40))}${(p.title || '').length > 40 ? '...' : ''}</td>
-      <td>${p.scheduled_at ? formatDate(p.scheduled_at) : '---'}</td>
+      <td>${manageTimeCell(p)}</td>
       <td><span class="badge badge-${p.status}">${statusLabel(p.status)}</span></td>
       <td>
         ${['draft', 'scheduled'].includes(p.status) ? `
@@ -409,6 +412,23 @@ async function loadManagePosts() {
       </td>
     </tr>
   `).join('');
+}
+
+// 投稿管理の「日時」セル。ステータスに応じて意味のある時刻を出す:
+//  - 投稿完了: 実際に投稿された日時（投稿）
+//  - 予約済み/承認済み: 予約時刻（予約）
+//  - 失敗/その他: 予約時刻があれば予約、なければ作成日時
+function manageTimeCell(p) {
+  if (p.status === 'published' && p.published_at) {
+    return `${formatDate(p.published_at)}<br><span style="font-size:11px;color:var(--text-light)">投稿</span>`;
+  }
+  if (p.scheduled_at) {
+    return `${formatDate(p.scheduled_at)}<br><span style="font-size:11px;color:var(--text-light)">予約</span>`;
+  }
+  if (p.published_at) {
+    return `${formatDate(p.published_at)}<br><span style="font-size:11px;color:var(--text-light)">投稿</span>`;
+  }
+  return p.created_at ? formatDate(p.created_at) : '---';
 }
 
 async function approvePost(id) {
