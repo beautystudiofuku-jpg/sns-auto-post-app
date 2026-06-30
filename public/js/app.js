@@ -471,8 +471,20 @@ function esc(str) {
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
-  const d = new Date(dateStr);
-  return d.toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  // DBの日時は datetime('now') 由来のUTC文字列で、タイムゾーン情報を持たない
+  // (例: "2026-06-30 03:13:00")。そのまま new Date() に渡すとブラウザはローカル時刻
+  // (JST) と誤解釈し9時間ズレるため、UTCとして明示的にパースしてからJST表示する。
+  let d;
+  const m = String(dateStr).match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?$/);
+  if (m) {
+    const [, y, mo, da, h, mi, se] = m;
+    d = new Date(Date.UTC(+y, +mo - 1, +da, +h, +mi, +(se || 0)));
+  } else {
+    // 既にZ付きISOなどタイムゾーン情報を持つ形式はそのまま解釈
+    d = new Date(dateStr);
+  }
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
 function isTokenExpired(expiresAt) {
