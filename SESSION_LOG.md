@@ -26,6 +26,19 @@
 - 反映後は本番ページをスーパーリロード（Ctrl+Shift+R）推奨（古い app.js キャッシュ対策）
 - Meta審査結果はこの時点でまだ未着（night.safari.group@gmail.com 確認済み）
 
+### 追加対応: 投稿管理リストで予約も実績も両方見れるように
+- 要望: 「予約投稿したリストを見たい。これから上がる予約も、過去の実績も両方」
+- `public/index.html`: フィルタに「投稿完了(published)」「失敗(failed)」を追加。テーブル見出し「予約日時」→「日時」
+- `public/js/app.js`:
+  - 「すべて」表示に `published / failed / cancelled` を含めた（従来は draft〜processingのみ）。`created_at` 降順でソート
+  - 新ヘルパー `manageTimeCell(p)`: 投稿完了は**投稿日時**（ラベル「投稿」）、予約済み/承認済みは**予約時刻**（ラベル「予約」）を表示。全てJST
+- 検証: ローカルで本番データ確認（published 3件は投稿日時あり、failed 3件取得OK）。`manageTimeCell` 全パターンOK
+- コミット `05a07db` Show completed/failed posts in manage list with post time → push済み
+
+### TikTok審査について
+- **TikTok本番審査は却下された**（複数回提出するも通らず）。許可は下りない見込み
+- 今後使うなら審査不要の **Draft Mode（`video.upload` スコープ）** へ切替を検討（実装は `services/tiktok/post.js` の `initializeDirectPost`→`initializeUpload` 差し替え、30分〜1時間）。最後の「投稿」ボタンだけ人間が押す方式
+
 ---
 
 ## 2026/6/16-17 セッション 🎉 Meta App Review 録画→提出完了
